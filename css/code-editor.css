@@ -1,0 +1,122 @@
+html, body {
+  min-height: 100%;
+  -webkit-text-size-adjust: none;
+  -ms-text-size-adjust: none;
+  text-size-adjust: none; }
+
+body {
+  margin: 0;
+  font-family: Helvetica, sans-serif;
+  font-size: 10pt; }
+
+.wrapper {
+  padding: 1em; }
+
+.code-editor {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  position: relative;
+  font-family: 'Menlo', 'Andale Mono', 'Consolas', monospace;
+  line-height: 1.5em;
+  overflow: auto;
+  white-space: pre;
+  -webkit-overflow-scrolling: touch;
+  display: -webkit-box;
+  /* OLD - iOS 6-, Safari 3.1-6 */
+  display: -moz-box;
+  /* OLD - Firefox 19- (buggy but mostly works) */
+  display: -ms-flexbox;
+  /* TWEENER - IE 10 */
+  display: -webkit-flex;
+  /* NEW - Chrome */
+  display: flex;
+  /* NEW, Spec - Opera 12.1, Firefox 20+ */
+  -webkit-flex-flow: row;
+  flex-direction: row; }
+
+.code-editor-gutter {
+  -webkit-flex: none;
+  flex: none; }
+
+.code-editor-gutter-inner {
+  padding: 0.5em 0;
+  text-align: right;
+  background: #fff7e7;
+  color: rgba(0, 0, 0, 0.5);
+  border-right: 1px solid #e9e2d9; }
+  .code-editor-gutter-inner > div {
+    padding: 0 0.5em; }
+
+.code-editor-content {
+  -webkit-flex: auto;
+  flex: auto; }
+
+.code-editor-content-inner {
+  padding: 0.5em 0;
+  white-space: pre;
+  cursor: text;
+  /* layout fix for safari */
+  min-width: 100%;
+  float: left;
+  /* end */ }
+  .code-editor-content-inner > div {
+    padding: 0 1em; }
+
+.code-editor-gutter-inner > .highlighted,
+.code-editor-content-inner > .highlighted {
+  background: rgba(127, 111, 3, 0.1); }
+.code-editor-gutter-inner > .selected,
+.code-editor-content-inner > .selected {
+  background: rgba(0, 0, 255, 0.1); }
+.code-editor-gutter-inner > div,
+.code-editor-content-inner > div {
+  height: 1.5em; }
+
+.code-editor-input {
+  width: 2px !important;
+  height: 1em !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  overflow: hidden;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none;
+  z-index: 0;
+  cursor: text;
+  resize: none; }
+
+.code-editor-cursor {
+  width: 0;
+  height: 1em;
+  margin-right: -2px;
+  border-right: 2px solid black;
+  vertical-align: middle;
+  display: inline-block;
+  cursor: text; }
+
+.code-editor-blink {
+  animation: editor-cursor-blink 1s infinite ease-in-out; }
+
+.code-editor-tab {
+  display: inline-block;
+  border-left: 1px solid rgba(0, 0, 0, 0.15);
+  margin-right: -1px;
+  vertical-align: middle; }
+
+@keyframes editor-cursor-blink {
+  0% {
+    opacity: 1; }
+  49% {
+    opacity: 1; }
+  50% {
+    opacity: 0; }
+  51% {
+    opacity: 0; }
+  100% {
+    opacity: 0; } }
+@media (max-width: 50em) {
+  body {
+    font-size: 13pt; } }
+
+/*# sourceMappingURL=code-editor.css.map */
