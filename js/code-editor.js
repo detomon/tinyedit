@@ -2,100 +2,47 @@
 
 'use strict';
 
-var de = d.documentElement;
-var globalClassName = 'code-editor';
-var classPrefix = globalClassName + '-';
-
-var deferred = {
-	funcs: [],
-	timeout: null,
-	run: function (func) {
-		var self = this;
-		this.funcs.push(func);
-
-		if (!this.timeout) {
-			this.timeout = w.setTimeout(function () {
-				for (var i = 0; i < self.funcs.length; i ++) {
-					self.funcs[i]();
-				}
-
-				self.funcs = [];
-				self.timeout = null;
-			}, 10);
-		}
-	}
-};
-
-var cursors = {
-	list: [],
-	remove: function (cursor) {
-		var n = indexOfObject(this.list, cursor);
-
-		if (n >= 0) {
-			this.list.splice(n, 1);
-		}
-	},
-	create: function () {
-		var cursor = d.createElement('span');
-		cursor.classList.add(className('cursor'), className('blink'));
-		this.list.push(cursor);
-
-		return cursor;
-	},
-	resetBlink: function () {
-		var self = this;
-
-		this.list.forEach(function (cursor) {
-			cursor.classList.remove(className('blink'));
-		});
-
-		deferred.run(function () {
-			self.list.forEach(function (cursor) {
-				cursor.classList.add(className('blink'));
-			});
-		});
-	}
-};
-
-var lines = {
-	element: null
-};
-
-var gutter = {
-	element: null,
-	update: function () {
-		var element = this.element;
-		var i = element.childNodes.length;
-		var n = lines.element.childNodes.length;
-
-		while (i < n) {
-			var number = d.createElement('div');
-			number.textContent = i + 1;
-			element.appendChild(number);
-			i ++;
-		}
-
-		while (i > n) {
-			element.removeChild(element.lastChild);
-			i --;
-		}
-	}
-};
+var classNamespace = 'code-editor';
+var classPrefix = classNamespace + '-';
+var elementKey = classNamespace + ((Math.random() * 10000000) | 0);
 
 function className(name) {
 	return classPrefix + name;
 }
 
 /**
+ * Get DOM index of element
+ */
+function indexOfElement(element) {
+	if (!element.parentNode) {
+		return -1;
+	}
+
+	// `children` does not include textNodes, whereas `childNodes` does
+	return Array.prototype.indexOf.call(element.parentNode.children, element);
+}
+
+function windowScrollOffset() {
+	var docElement = d.documentElement;
+
+	return {
+		x: d.body.scrollLeft + docElement.scrollLeft,
+		y: d.body.scrollTop + docElement.scrollTop,
+	};
+}
+
+/**
  * Convert from relative viewport coordinates to absolute coordinates
  */
 function positionFromRelativePosition(x, y) {
-	x -= d.body.scrollLeft + de.scrollLeft;
-	y -= d.body.scrollTop + de.scrollTop;
+	var scrollOffset = windowScrollOffset();
+
+	x -= scrollOffset.x;
+	y -= scrollOffset.y;
 
 	return {
 		x: x,
-		y: y
+		y: y,
 	};
 }
 
@@ -103,12 +50,14 @@ function positionFromRelativePosition(x, y) {
  * Convert from absolute coordinates to relative viewport coordinates
  */
 function positionToRelativePosition(x, y) {
-	x += d.body.scrollLeft + de.scrollLeft;
-	y += d.body.scrollTop + de.scrollTop;
+	var scrollOffset = windowScrollOffset();
+
+	x += scrollOffset.x;
+	y += scrollOffset.y;
 
 	return {
 		x: x,
-		y: y
+		y: y,
 	};
 }
 
@@ -119,8 +68,8 @@ function textOffsetFromPosition(lineElement, x, y) {
 	var range;
 	var textNode;
 	var offset;
-
 	var position = positionFromRelativePosition(x, y);
+
 	x = position.x;
 	y = position.y;
 
@@ -140,246 +89,8 @@ function textOffsetFromPosition(lineElement, x, y) {
 
 	return {
 		textNode: textNode,
-		offset: offset
+		offset: offset,
 	};
-}
-
-/**
- * Returns the fragment and relative offset containing the character offset
- *
- * If `fragment` is null, the offset is not contained in the element
- */
-function fragmentContainingOffset(lineElement, offset) {
-	var fragment = lineElement.firstChild;
-
-	while (fragment) {
-		if (fragment.textContent) {
-			if (offset < fragment.textContent.length) {
-				break;
-			}
-
-			offset -= fragment.textContent.length;
-		}
-
-		fragment = fragment.nextSibling;
-	}
-
-	return {
-		fragment: fragment,
-		offset: offset
-	};
-}
-
-/**
- * Insert element at specific offset in line element
- */
-function insertElementAtOffset(element, lineElement, offset) {
-	var text;
-	var textNode;
-	var info = fragmentContainingOffset(lineElement, offset);
-	var fragment = info.fragment;
-
-	if (fragment) {
-		text = fragment.textContent;
-		fragment.textContent = text.slice(0, info.offset);
-		textNode = d.createTextNode(text.slice(info.offset));
-		fragment.parentNode.insertBefore(textNode, fragment.nextSibling);
-		fragment.parentNode.insertBefore(element, textNode);
-	}
-	else {
-		lineElement.appendChild(element);
-	}
-}
-
-/**
- * Alternative for calculating offset and textNode from viewport coordinates
- */
-function calcTextOffsetFromPosition(lineElement, x, y) {
-	var caret = d.createElement('span');
-	caret.style.width= '1px';
-	caret.style.height = '1em';
-	caret.style.display = 'inline-block';
-
-	var length = lineLength(lineElement);
-	var range = [0, length + 1];
-	var offset = 0;
-	var center = 0;
-
-	var rect;
-	var textNode;
-
-	while (range[0] < range[1]) {
-		var center = ((range[0] + range[1]) / 2) | 0;
-
-		// remove caret and merge adjacent text nodes
-		if (caret.previousSibling && caret.nextSibling) {
-			if (caret.previousSibling.textContent && caret.nextSibling.textContent) {
-				caret.previousSibling.textContent += caret.nextSibling.textContent;
-				removeElement(caret.nextSibling);
-				removeElement(caret);
-			}
-		}
-
-		insertElementAtOffset(caret, lineElement, center);
-		rect = caret.getBoundingClientRect();
-
-		// left from center
-		if (rect.left < x) {
-			range[0] = center + 1;
-		}
-		// right from center
-		else {
-			range[1] = center;
-		}
-	}
-
-	if (caret.previousSibling && caret.nextSibling) {
-		if (caret.previousSibling.textContent && caret.nextSibling.textContent) {
-			caret.previousSibling.textContent += caret.nextSibling.textContent;
-			removeElement(caret.nextSibling);
-		}
-	}
-
-	textNode = prevTextSibling(caret);
-	removeElement(caret);
-
-	return {
-		textNode: textNode,
-		offset: range[0]
-	};
-}
-
-/**
- * Get character count of line element
- */
-function lineLength(lineElement) {
-	return lineElement.textContent.length;
-}
-
-/**
- * Get absolute character offset for text fragment and relative offset
- */
-function absoluteCharacterOffsetInLine(textNode, lineElement, offset) {
-	var absOffset = offset;
-
-	textNode = textNode.previousSibling;
-
-	while (textNode) {
-		absOffset += textNode.textContent.length;
-
-		if (!textNode.previousSibling && textNode.parentNode != lineElement) {
-			textNode = textNode.parentNode;
-		}
-		else {
-			textNode = textNode.previousSibling;
-		}
-	}
-
-	return absOffset;
-}
-
-/**
- * Delete single character in text fragment
- */
-function deleteCharacter(textNode, direction) {
-	var cursorSpan = textNode;
-	textNode = direction > 0 ? textNode.nextSibling : textNode.previousSibling;
-
-	if (textNode) {
-		var text = textNode.textContent;
-		var range = direction > 0 ? [1] : [0, text.length - 1];
-		text = text.substring.apply(text, range);
-
-		if (text.length) {
-			textNode.textContent = text;
-		}
-		else {
-			removeElement(textNode);
-		}
-
-		cursors.resetBlink();
-	}
-}
-
-/**
- * Get next text sibling or create if not exists
- */
-function nextTextSibling(element) {
-	var textNode = element.nextSibling;
-
-	if (!textNode) {
-		textNode = d.createTextNode('');
-		element.parentNode.insertBefore(textNode, element.nextSibling);
-	}
-
-	return textNode;
-}
-
-/**
- * Get previous text sibling or create if not exists
- */
-function prevTextSibling(element) {
-	var textNode = element.previousSibling;
-
-	if (!textNode) {
-		textNode = d.createTextNode('');
-		element.parentNode.insertBefore(textNode, element);
-	}
-
-	return textNode;
-}
-
-/**
- * Insert character before cursor element
- */
-function insertCharacter(cursorSpan, text) {
-	prevTextSibling(cursorSpan).textContent += text;
-	cursors.resetBlink();
-}
-
-/**
- * Insert tab before cursor element
- */
-function insertTab(cursorSpan) {
-	var tab = d.createElement('span');
-	tab.textContent = '    ';
-	tab.classList.add(className('tab'));
-
-	cursorSpan.parentNode.insertBefore(tab, cursorSpan);
-}
-
-/**
- * Move cursor element by single character
- */
-function moveCursorHorizontal(cursorSpan, direction) {
-	if (direction > 0) {
-		var next = cursorSpan.nextSibling;
-
-		if (next) {
-			var text = next.textContent.slice(0, 1);
-			next.textContent = next.textContent.slice(1);
-			prevTextSibling(cursorSpan).textContent += text;
-		}
-		else {
-			// next line
-		}
-	}
-	else {
-		var next = nextTextSibling(cursorSpan);
-		var prev = cursorSpan.previousSibling;
-
-		if (prev) {
-			var text = prev.textContent.slice(-1);
-
-			prev.textContent = prev.textContent.slice(0, -1);
-			next.textContent = text + next.textContent;
-		}
-		else {
-			// prev line
-		}
-	}
-
-	cursors.resetBlink();
 }
 
 /**
@@ -392,44 +103,27 @@ function removeElement(element) {
 }
 
 /**
- * Remove element and merge adjacent text elements
- *
- * Do not merge tabs
+ * Remove element and merge adjacent text nodes
  */
 function removeElementAndMerge(element) {
 	if (element && element.parentNode) {
-		var prev = element.previousSibling;
-		var next = element.nextSibling;
-
-		if (prev && next &&
-			(!prev.classList || !prev.classList.contains(className('tab'))) &&
-			(!next.classList || !next.classList.contains(className('tab'))))
-		{
-			prev.textContent += next.textContent;
-			removeElement(next);
-		}
+		var parentNode = element.parentNode;
 
 		removeElement(element);
+		parentNode.normalize();
 	}
 }
 
-function indexOfObject(list, obj) {
-	var i, n = -1;
-
-	for (i = 0; i < list.length; i ++) {
-		if (list[i] == obj) {
-			n = i;
-			break;
+function parentNodeFromClickTarget(element) {
+	while (element.parentNode) {
+		if (element.parentNode.classList.contains(className('container'))) {
+			return element;
 		}
+
+		element = element.parentNode;
 	}
 
-	return n;
-}
-
-function getNearestEndOfTab(tabSpan, x) {
-	var rect = tabSpan.getBoundingClientRect();
-
-	return x - (rect.left + rect.width / 2);
+	return null;
 }
 
 function keyDown(keyCode) {
@@ -465,150 +159,202 @@ function keyDown(keyCode) {
 	}
 }
 
-function isTabElement(element) {
-	return element.classList.contains(className('tab'));
+function createLineElement(text) {
+	var line = d.createElement('div');
+	var inner = d.createElement('div');
+
+	inner.innerHTML = text;
+	line.appendChild(inner);
+
+	return line;
 }
 
-function createInputElement() {
-	var input = d.createElement('textarea');
+function extend(obj, obj2) {
+	var i, j;
+	var arg;
+	var args = Array.prototype.slice.call(arguments, 1);
 
-	input.setAttribute('wrap', 'off');
-	input.setAttribute('autocapitalize', 'off');
-	input.setAttribute('spellcheck', 'false');
-	input.classList.add(className('input'));
+	for (i = 0; i < args.length; i ++) {
+		var arg = args[i];
 
-	input.addEventListener('blur', function () {
-		var cursor = this.parentNode;
-
-		if (cursor) {
-			removeElementAndMerge(cursor);
-			cursors.remove(cursor);
-		}
-	});
-
-	return input;
-}
-
-function inputKeydown(e) {
-	var input = this;
-	var cursorSpan = this.parentNode;
-	var value = input.value;
-	var keyCode = e.keyCode;
-
-	if (value == '~' || value == '¨' || value == '`') {
-		// composite
-	}
-
-	if (keyCode == 8) { // delete
-		e.preventDefault();
-		input.value = '';
-		deleteCharacter(cursorSpan, -1);
-	}
-	else if (keyCode == 46) { // backspace
-		e.preventDefault();
-		input.value = '';
-		deleteCharacter(cursorSpan, 1);
-	}
-	else if (keyCode == 9) { // tab
-		insertTab(cursorSpan);
-		e.preventDefault();
-		input.value = '';
-		cursors.resetBlink();
-	}
-	else if (keyCode == 13) { // enter
-		e.preventDefault();
-		input.value = '';
-	}
-	else if (keyCode == 37) { // left
-		moveCursorHorizontal(cursorSpan, -1);
-	}
-	else if (keyCode == 38) { // up
-	}
-	else if (keyCode == 39) { // right
-		moveCursorHorizontal(cursorSpan, 1);
-	}
-	else if (keyCode == 40) { // down
-	}
-	/*else {
-		deferred.run(function () {
-			if (input.value != value) { // something has been written
-				insertCharacter(cursorSpan, input.value);
-				input.value = '';
+		for (j in arg) {
+			if (arg.hasOwnProperty(j)) {
+				if (arg[j] !== null && arg[j] !== undefined) {
+					obj[j] = arg[j];
+				}
 			}
-		});
-	}*/
+		}
+	}
+
+	return obj;
 }
 
-function addCursorFromEvent(content, gutter, e) {
-	var x = e.pageX;
-	var y = e.pageY;
-	var line = e.target;
+function stringRepeat(string, count) {
+	var newString = '';
 
-	e.preventDefault();
-
-	if (isTabElement(line)) {
-		var end = getNearestEndOfTab(line, x);
-		var cursor = cursors.create();
-
-		if (end >= 0) { // right
-			line.parentNode.insertBefore(cursor, line.nextSibling);
-		}
-		else { // left
-			line.parentNode.insertBefore(cursor, line);
-		}
-
-		cursors.resetBlink();
-
-		return;
+	for (var i = 0; i < count; i ++) {
+		newString += string;
 	}
 
-	while (line.parentNode && line.parentNode != content) {
-		line = line.parentNode;
-	}
+	return newString;
+}
 
-	if (line.parentNode == content) {
-		var inner = line.querySelector('div');
+function CodeEditor(editor, options) {
+	var self = this;
 
-		var offset = textOffsetFromPosition(inner, x, y);
-		offset.offset = absoluteCharacterOffsetInLine(offset.textNode, inner, offset.offset);
+	options = extend({
+		tabWidth: 4,
+		tabStyle: 'hard',
+		textarea: null,
+		firstLineNumber: 1,
+		lineBreak: '\n',
+	}, options);
 
-		if (offset.textNode) {
-			var input;
-			var text = inner.textContent;
-			var cursorSpan = cursors.create();
+	options.tabContent = stringRepeat(' ', options.tabWidth);
 
-			insertElementAtOffset(cursorSpan, inner, offset.offset);
+	this.options = options;
 
-			input = createInputElement();
+	this.deferred = {
+		funcs: [],
+		timeout: null,
+		run: function (func) {
+			var self = this;
+			this.funcs.push(func);
 
-			cursorSpan.appendChild(input);
+			if (!this.timeout) {
+				this.timeout = w.setTimeout(function () {
+					for (var i = 0; i < self.funcs.length; i ++) {
+						self.funcs[i]();
+					}
 
-			input.addEventListener('keydown', function (e) {
-				inputKeydown.call(input, e);
+					self.funcs = [];
+					self.timeout = null;
+				}, 0);
+			}
+		}
+	};
+
+	this.cursors = {
+		list: [],
+		remove: function (cursor) {
+			var n = this.list.indexOf(cursor);
+
+			if (n >= 0) {
+				this.list.splice(n, 1);
+			}
+		},
+		removeAll: function () {
+			if (this.inputElement) {
+				this.inputElement.removeEventListener('blur', this.inputBlur);
+			}
+
+			this.list.forEach(function (cursor) {
+				var parent = cursor.parentNode;
+
+				if (parent) {
+					parent.removeChild(cursor);
+
+					while (parent.nodeName.toLowerCase() != 'div') {
+						parent = parent.parentNode;
+					}
+
+					parent.normalize();
+				}
 			});
 
-			input.addEventListener('keypress', function (e) {
-				inputKeydown.call(input, e);
-			});
-			input.addEventListener('input', function () {
-				insertCharacter(cursorSpan, input.value);
-				input.value = '';
-			});
+			this.list = [];
+		},
+		create: function () {
+			var cursor = d.createElement('span');
+			cursor.classList.add(className('cursor'), className('blink'));
+			this.list.push(cursor);
 
+			return cursor;
+		},
+		inputBlur: function () {
+			self.cursors.removeAll();
+		},
+		createInputElement: function () {
+			if (!this.inputElement) {
+				var input = d.createElement('textarea');
+
+				input.setAttribute('wrap', 'off');
+				input.setAttribute('autocapitalize', 'off');
+				input.setAttribute('spellcheck', 'false');
+				input.classList.add(className('input'));
+
+				this.inputElement = input;
+			}
+
+			return this.inputElement;
+		},
+		activateForInput: function (cursor) {
+			var input = this.createInputElement();
+
+			cursor.appendChild(input);
 			input.focus();
 
-			line.classList.add('highlighted');
+			input.addEventListener('blur', this.inputBlur);
+		},
+		resetBlink: function () {
+			var self = this;
+
+			this.list.forEach(function (cursor) {
+				cursor.classList.remove(className('blink'));
+			});
+
+			deferred.run(function () {
+				self.list.forEach(function (cursor) {
+					cursor.classList.add(className('blink'));
+				});
+			});
 		}
-	}
-	else if (line.parentNode == gutter) {
-		//
-	}
-}
+	};
 
-var editors = document.querySelectorAll('.' + globalClassName);
+	this.lines = {
+		element: null
+	};
 
-for (var i = 0; i < editors.length; i ++) {
-	var editor = editors.item(i);
+	this.gutter = {
+		element: null,
+		update: function () {
+			var element = this.element;
+			var i = element.childNodes.length;
+			var n = self.lines.element.childNodes.length;
+
+			while (i < n) {
+				var number = d.createElement('div');
+				number.textContent = options.firstLineNumber + i;
+				element.appendChild(number);
+				i ++;
+			}
+
+			while (i > n) {
+				element.removeChild(element.lastChild);
+				i --;
+			}
+		}
+	};
+
+	this.value = function (options) {
+		var self = this;
+
+		options = extend({
+			tabWidth: self.options.tabWidth,
+			tabStyle: self.options.tabStyle,
+			lineBreak: self.options.lineBreak,
+		}, options);
+
+		var data = [];
+		var lines = this.lines.element.children;
+
+		for (var i = 0; i < lines.length; i ++) {
+			data.push(lines[i].textContent);
+		}
+
+		return data.join(options.lineBreak);
+	};
+
 	var contentElement = d.createElement('div');
 	var gutterElement = d.createElement('div');
 	var contentInner = d.createElement('div');
@@ -617,47 +363,159 @@ for (var i = 0; i < editors.length; i ++) {
 
 	contentElement.appendChild(contentInner);
 	gutterElement.appendChild(gutterInner);
-	lines.element = contentInner;
-
-	data = editor.textContent;
-	editor.innerHTML = '';
 
 	contentElement.classList.add(className('content'));
-	contentInner.classList.add(className('content-inner'));
+	contentInner.classList.add(className('content-inner'), className('container'));
 	gutterElement.classList.add(className('gutter'));
-	gutterInner.classList.add(className('gutter-inner'));
+	gutterInner.classList.add(className('gutter-inner'), className('container'));
+
+	if (options.textarea) {
+		data = options.textarea.value;
+		textarea.style.display = 'none';
+	}
+	else {
+		data = editor.textContent;
+	}
 
 	data = data.split(/\r?\n/m);
 
-	for (var i = 0; i < data.length; i ++) {
-		var text = data[i];
-		var line = d.createElement('div');
-		var inner = d.createElement('div');
-
-		text = text.replace(/\t/g, '<span class="' + classPrefix + 'tab">    </span>');
-		line.appendChild(inner);
-		inner.innerHTML = text;
-
+	data.forEach(function (text) {
+		var line = self.createLineElementFromRawLineContent(text);
 		contentInner.appendChild(line);
-	}
+	});
 
-	gutter.element = gutterInner;
-	gutter.update();
+	this.lines.element = contentInner;
+	this.gutter.element = gutterInner;
+	this.gutter.update();
 
+	editor.innerHTML = '';
 	editor.appendChild(gutterElement);
 	editor.appendChild(contentElement);
 
 	editor.addEventListener('mousedown', function (e) {
-		addCursorFromEvent(contentInner, gutterElement, e);
+		self.handleMouseDownEvent(e);
 	});
+
 }
 
-d.addEventListener('keydown', function (e) {
-	keyDown(e.keyCode, e);
-});
+var proto = CodeEditor.prototype;
 
-d.addEventListener('keypress', function (e) {
-	keyDown(e.keyCode, e);
-});
+proto.createLineElementFromRawLineContent = function(text) {
+	// remove trailing space
+	text = text.replace(/\s+$/g, '');
+	// replace tabs with tab element
+	text = text.replace(/\t/g, '<span class="' + className('tab') + '">' + this.options.tabContent + '</span>');
+
+	return createLineElement(text);
+};
+
+proto.handleGutterClick = function(numberElement, e) {
+
+};
+
+proto.handleTextClick = function(lineElement, e) {
+	this.cursors.removeAll();
+
+	var self = this;
+	var x = e.pageX;
+	var y = e.pageY;
+	var offset = textOffsetFromPosition(lineElement, x, y);
+
+	if (!offset) {
+		return;
+	}
+
+	var fragment = offset.textNode;
+
+	// tab
+	if (fragment.parentNode.classList.contains(className('tab'))) {
+		var tab = fragment.parentNode;
+		var rect = tab.getBoundingClientRect();
+
+		self.cursors.removeAll();
+
+		var cursor = self.cursors.create();
+		var before;
+
+		if (x >= rect.left + rect.width * 0.5) {
+			before = tab.nextSibling;
+		}
+		else {
+			before = tab;
+		}
+
+		tab.parentNode.insertBefore(cursor, before);
+		self.cursors.activateForInput(cursor);
+
+		return;
+	}
+	// cursor
+	else if (fragment.classList && fragment.classList.contains(className('cursor'))) {
+		if (fragment.nextSibling) {
+			fragment = fragment.nextSibling;
+		}
+		else {
+			fragment = fragment.parentNode.insertBefore(d.createTextNode(''), fragment);
+		}
+
+		offset.textNode = fragment;
+	}
+
+	var cursor = self.cursors.create();
+	var textNode = offset.textNode;
+
+	if (textNode.nodeName.toLowerCase() == 'div') {
+		textNode.appendChild(cursor);
+	}
+	else if (offset.offset == 0) {
+		textNode.parentNode.insertBefore(cursor, textNode);
+	}
+	else if (offset.offset == offset.textNode.nodeValue.length) {
+		textNode.parentNode.insertBefore(cursor, textNode.nextSibling);
+	}
+	else {
+		var next = offset.textNode.splitText(offset.offset);
+		next.parentNode.insertBefore(cursor, next);
+	}
+
+	self.cursors.activateForInput(cursor);
+};
+
+proto.handleMouseDownEvent = function(e) {
+	var self = this;
+	var target = e.target;
+
+	e.preventDefault();
+	target = parentNodeFromClickTarget(target);
+
+	if (!target) {
+		return null;
+	}
+
+	var parentNode = target.parentNode;
+
+	// lines
+	if (parentNode.classList.contains(className('content-inner'))) {
+		target = target.querySelector('div');
+		self.handleTextClick(target, e);
+	}
+	// gutter
+	else if (parentNode.classList.contains(className('gutter-inner'))) {
+		self.handleGutterClick(target, e);
+	}
+};
+
+window.CodeEditor = function (element, options) {
+	if (!element || !element.parentNode || !element.ownerDocument) {
+		return null;
+	}
+
+	if (!element[elementKey]) {
+		var editor = new CodeEditor(element, options)
+		element[elementKey] = editor;
+	}
+
+	return element[elementKey];
+};
 
 }(document, window));
