@@ -12,24 +12,22 @@ body {
 .wrapper {
   padding: 1em; }
 
+@media (max-width: 50em) {
+  body {
+    font-size: 13pt; } }
 .code-editor {
   border: 1px solid rgba(0, 0, 0, 0.2);
   position: relative;
-  font-family: 'Menlo', 'Andale Mono', 'Consolas', monospace;
+  font-family: "Menlo", "Andale Mono", "Consolas", monospace;
   line-height: 1.5em;
   overflow: auto;
   white-space: pre;
   -webkit-overflow-scrolling: touch;
   display: -webkit-box;
-  /* OLD - iOS 6-, Safari 3.1-6 */
   display: -moz-box;
-  /* OLD - Firefox 19- (buggy but mostly works) */
   display: -ms-flexbox;
-  /* TWEENER - IE 10 */
   display: -webkit-flex;
-  /* NEW - Chrome */
   display: flex;
-  /* NEW, Spec - Opera 12.1, Firefox 20+ */
   -webkit-flex-flow: row;
   flex-direction: row; }
 
@@ -38,10 +36,9 @@ body {
   flex: none; }
 
 .code-editor-gutter-inner {
-  padding: 0.5em 0;
   text-align: right;
   background: #fff7e7;
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(127, 123, 115, 0.75);
   border-right: 1px solid #e9e2d9; }
   .code-editor-gutter-inner > div {
     padding: 0 0.5em; }
@@ -50,25 +47,28 @@ body {
   -webkit-flex: auto;
   flex: auto; }
 
+.code-editor-gutter-inner,
 .code-editor-content-inner {
-  padding: 0.5em 0;
+  padding: 0.5em 0; }
+
+.code-editor-content-inner {
   white-space: pre;
   cursor: text;
-  /* layout fix for safari */
+  /* layout fix */
   min-width: 100%;
   float: left;
   /* end */ }
   .code-editor-content-inner > div {
     padding: 0 1em; }
 
-.code-editor-gutter-inner > .highlighted,
-.code-editor-content-inner > .highlighted {
+.code-editor-gutter-inner .highlighted,
+.code-editor-content-inner .highlighted {
   background: rgba(127, 111, 3, 0.1); }
-.code-editor-gutter-inner > .selected,
-.code-editor-content-inner > .selected {
-  background: rgba(0, 0, 255, 0.1); }
-.code-editor-gutter-inner > div,
-.code-editor-content-inner > div {
+.code-editor-gutter-inner .selected,
+.code-editor-content-inner .selected {
+  background: rgba(0, 127, 255, 0.1); }
+.code-editor-gutter-inner > div > div,
+.code-editor-content-inner > div > div {
   height: 1.5em; }
 
 .code-editor-input {
@@ -80,6 +80,7 @@ body {
   opacity: 0 !important;
   overflow: hidden;
   -moz-appearance: none;
+  -webkit-appearance: none;
   appearance: none;
   outline: none;
   z-index: 0;
@@ -90,13 +91,14 @@ body {
   width: 0;
   height: 1em;
   margin-right: -2px;
-  border-right: 2px solid black;
+  border-right: 2px solid #000000;
   vertical-align: middle;
   display: inline-block;
   cursor: text; }
 
 .code-editor-blink {
-  animation: editor-cursor-blink 1s infinite ease-in-out; }
+  -webkit-animation: editor-cursor-blink 1s infinite linear;
+  animation: editor-cursor-blink 1s infinite linear; }
 
 .code-editor-tab {
   display: inline-block;
@@ -104,6 +106,17 @@ body {
   margin-right: -1px;
   vertical-align: middle; }
 
+@-webkit-keyframes editor-cursor-blink {
+  0% {
+    opacity: 1; }
+  49% {
+    opacity: 1; }
+  50% {
+    opacity: 0; }
+  51% {
+    opacity: 0; }
+  100% {
+    opacity: 0; } }
 @keyframes editor-cursor-blink {
   0% {
     opacity: 1; }
@@ -115,8 +128,5 @@ body {
     opacity: 0; }
   100% {
     opacity: 0; } }
-@media (max-width: 50em) {
-  body {
-    font-size: 13pt; } }
 
 /*# sourceMappingURL=code-editor.css.map */
