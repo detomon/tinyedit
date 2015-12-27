@@ -9,7 +9,8 @@ module.exports = function(grunt) {
 			},
 			dist: {
 				files: {
-					'css/tinyedit.css': 'css/tinyedit.scss'
+					'css/tinyedit.css': 'css/tinyedit.scss',
+					'css/main.css': 'css/main.scss'
 				}
 			}
 		},
