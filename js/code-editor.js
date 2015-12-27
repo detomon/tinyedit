@@ -116,11 +116,13 @@ function removeElementAndMerge(element) {
 
 function parentNodeFromClickTarget(element) {
 	while (element.parentNode) {
-		if (element.parentNode.classList.contains(className('container'))) {
+		var parent = element.parentNode;
+
+		if (parent && parent.classList && parent.classList.contains(className('container'))) {
 			return element;
 		}
 
-		element = element.parentNode;
+		element = parent;
 	}
 
 	return null;
