@@ -28,12 +28,9 @@ $cursor-blink-time: 1s;
 	display: -ms-flexbox;
 	display: -webkit-flex;
 	display: flex;
-	-webkit-flex-flow: row;
-	flex-direction: row;
 }
 
 @mixin tinyedit-flex-box-flex($flex) {
-	-webkit-flex: $flex;
 	flex: $flex;
 }
 
@@ -108,8 +105,6 @@ $cursor-blink-time: 1s;
 	border: 0 !important;
 	opacity: 0 !important;
 	overflow: hidden;
-	-moz-appearance: none;
-	-webkit-appearance: none;
 	appearance: none;
 	outline: none;
 	z-index: 0;
@@ -128,7 +123,6 @@ $cursor-blink-time: 1s;
 }
 
 .tinyedit-blink {
-	-webkit-animation: editor-cursor-blink $cursor-blink-time infinite linear;
 	animation: editor-cursor-blink $cursor-blink-time infinite linear;
 }
 
@@ -137,14 +131,6 @@ $cursor-blink-time: 1s;
 	border-left: $tab-sep-width solid $tab-sep-color;
 	margin-right: (-$tab-sep-width);
 	vertical-align: middle;
-}
-
-@-webkit-keyframes editor-cursor-blink {
-	0%   { opacity: 1; }
-	49%  { opacity: 1; }
-	50%  { opacity: 0; }
-	51%  { opacity: 0; }
-	100% { opacity: 0; }
 }
 
 @keyframes editor-cursor-blink {
