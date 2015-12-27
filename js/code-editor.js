@@ -210,6 +210,7 @@ function CodeEditor(editor, options) {
 		textarea: null,
 		firstLineNumber: 1,
 		lineBreak: '\n',
+		editable: true,
 	}, options);
 
 	options.tabContent = stringRepeat(' ', options.tabWidth);
@@ -394,9 +395,11 @@ function CodeEditor(editor, options) {
 	editor.appendChild(gutterElement);
 	editor.appendChild(contentElement);
 
-	editor.addEventListener('mousedown', function (e) {
-		self.handleMouseDownEvent(e);
-	});
+	if (options.editable) {
+		editor.addEventListener('mousedown', function (e) {
+			self.handleMouseDownEvent(e);
+		});
+	}
 
 }
 
