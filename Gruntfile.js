@@ -16,6 +16,9 @@ module.exports = function(grunt) {
 
 		postcss: {
 			options: {
+				map: {
+					inline: false
+				},
 				processors: [
 					require('pixrem')(),
 					require('autoprefixer')({browsers: 'last 5 versions'}),
