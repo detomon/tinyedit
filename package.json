@@ -1,8 +1,8 @@
 {
-  "name": "CodeEditor.js",
+  "name": "tinyedit.js",
   "version": "0.1.0",
-  "description": "",
-  "main": "code-editor.js",
+  "description": "Minimalistic code editor",
+  "main": "tinyedit.js",
   "repository": {
     "type": "git",
     "url": ""
