@@ -47,7 +47,7 @@ $tab-sep-color: rgba(#000000, 0.15);
 
 $cursor-blink-time: 1s;
 
-@mixin code-editor-flex-box-row() {
+@mixin tinyedit-flex-box-row() {
 	display: -webkit-box;
 	display: -moz-box;
 	display: -ms-flexbox;
@@ -57,12 +57,12 @@ $cursor-blink-time: 1s;
 	flex-direction: row;
 }
 
-@mixin code-editor-flex-box-flex($flex) {
+@mixin tinyedit-flex-box-flex($flex) {
 	-webkit-flex: $flex;
 	flex: $flex;
 }
 
-.code-editor {
+.tinyedit {
 	border: $editor-border;
 	position: relative;
 	font-family: $editor-font-family;
@@ -70,14 +70,14 @@ $cursor-blink-time: 1s;
 	overflow: auto;
 	white-space: pre;
 	-webkit-overflow-scrolling: touch;
-	@include code-editor-flex-box-row();
+	@include tinyedit-flex-box-row();
 }
 
-.code-editor-gutter {
-	@include code-editor-flex-box-flex(none);
+.tinyedit-gutter {
+	@include tinyedit-flex-box-flex(none);
 }
 
-.code-editor-gutter-inner {
+.tinyedit-gutter-inner {
 	text-align: right;
 	background: $gutter-color;
 	color: $gutter-number-color;
@@ -88,16 +88,16 @@ $cursor-blink-time: 1s;
 	}
 }
 
-.code-editor-content {
-	@include code-editor-flex-box-flex(auto);
+.tinyedit-content {
+	@include tinyedit-flex-box-flex(auto);
 }
 
-.code-editor-gutter-inner,
-.code-editor-content-inner {
+.tinyedit-gutter-inner,
+.tinyedit-content-inner {
 	padding: $column-padding 0;
 }
 
-.code-editor-content-inner {
+.tinyedit-content-inner {
 	white-space: pre;
 	cursor: text;
  	/* layout fix */
@@ -110,8 +110,8 @@ $cursor-blink-time: 1s;
 	}
 }
 
-.code-editor-gutter-inner,
-.code-editor-content-inner {
+.tinyedit-gutter-inner,
+.tinyedit-content-inner {
 	.highlighted {
 		background: $line-highlighted-color;
 	}
@@ -125,7 +125,7 @@ $cursor-blink-time: 1s;
 	}
 }
 
-.code-editor-input {
+.tinyedit-input {
 	width: 2px !important;
 	height: 1em !important;
 	margin: 0 !important;
@@ -142,7 +142,7 @@ $cursor-blink-time: 1s;
 	resize: none;
 }
 
-.code-editor-cursor {
+.tinyedit-cursor {
 	width: 0;
 	height: $cursor-height;
 	margin-right: (-$cursor-width);
@@ -152,12 +152,12 @@ $cursor-blink-time: 1s;
 	cursor: text;
 }
 
-.code-editor-blink {
+.tinyedit-blink {
 	-webkit-animation: editor-cursor-blink $cursor-blink-time infinite linear;
 	animation: editor-cursor-blink $cursor-blink-time infinite linear;
 }
 
-.code-editor-tab {
+.tinyedit-tab {
 	display: inline-block;
 	border-left: $tab-sep-width solid $tab-sep-color;
 	margin-right: (-$tab-sep-width);

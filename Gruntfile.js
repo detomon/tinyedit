@@ -9,7 +9,7 @@ module.exports = function(grunt) {
 			},
 			dist: {
 				files: {
-					'css/code-editor.css': 'css/code-editor.scss'
+					'css/tinyedit.css': 'css/tinyedit.scss'
 				}
 			}
 		},
@@ -33,9 +33,9 @@ module.exports = function(grunt) {
 		uglify: {
 			dist: {
 				src: [
-					'js/code-editor.js'
+					'js/tinyedit.js'
 				],
-				dest: 'js/code-editor.min.js',
+				dest: 'js/tinyedit.min.js',
 				options: {
 					sourceMap: true,
 					sourceMapIncludeSources: true

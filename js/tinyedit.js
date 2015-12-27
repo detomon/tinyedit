@@ -2,7 +2,7 @@
 
 'use strict';
 
-var classNamespace = 'code-editor';
+var classNamespace = 'tinyedit';
 var classPrefix = classNamespace + '-';
 var elementKey = classNamespace + ((Math.random() * 10000000) | 0);
 
@@ -201,7 +201,7 @@ function stringRepeat(string, count) {
 	return newString;
 }
 
-function CodeEditor(editor, options) {
+function TinyEdit(editor, options) {
 	var self = this;
 
 	options = extend({
@@ -403,7 +403,7 @@ function CodeEditor(editor, options) {
 
 }
 
-var proto = CodeEditor.prototype;
+var proto = TinyEdit.prototype;
 
 proto.createLineElementFromRawLineContent = function(text) {
 	// remove trailing space
@@ -510,13 +510,13 @@ proto.handleMouseDownEvent = function(e) {
 	}
 };
 
-window.CodeEditor = function (element, options) {
+window.TinyEdit = function (element, options) {
 	if (!element || !element.parentNode || !element.ownerDocument) {
 		return null;
 	}
 
 	if (!element[elementKey]) {
-		var editor = new CodeEditor(element, options)
+		var editor = new TinyEdit(element, options)
 		element[elementKey] = editor;
 	}
 
