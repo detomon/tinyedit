@@ -39,9 +39,9 @@ $cursor-blink-time: 1s;
 	position: relative;
 	font-family: $editor-font-family;
 	line-height: $line-height;
-	overflow: auto;
+	/*overflow: auto;
+	-webkit-overflow-scrolling: touch;*/
 	white-space: pre;
-	-webkit-overflow-scrolling: touch;
 	@include tinyedit-flex-box-row();
 }
 
@@ -61,6 +61,8 @@ $cursor-blink-time: 1s;
 }
 
 .tinyedit-content {
+	overflow: auto;
+	-webkit-overflow-scrolling: touch;
 	@include tinyedit-flex-box-flex(auto);
 }
 
