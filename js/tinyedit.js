@@ -213,9 +213,8 @@ function TinyEdit(editor, options) {
 		editable: true,
 	}, options);
 
-	options.tabContent = stringRepeat(' ', options.tabWidth);
-
 	this.options = options;
+	editor.style.tabSize = options.tabWidth;
 
 	this.deferred = {
 		funcs: [],
@@ -409,7 +408,7 @@ proto.createLineElementFromRawLineContent = function(text) {
 	// remove trailing space
 	text = text.replace(/\s+$/g, '');
 	// replace tabs with tab element
-	text = text.replace(/\t/g, '<span class="' + className('tab') + '">' + this.options.tabContent + '</span>');
+	text = text.replace(/\t/g, '<span class="' + className('tab') + '">\t</span>');
 
 	return createLineElement(text);
 };
