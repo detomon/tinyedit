@@ -137,8 +137,8 @@ $cursor-blink-time: 1s;
 
 @keyframes editor-cursor-blink {
 	0%   { opacity: 1; }
-	49%  { opacity: 1; }
+	40%  { opacity: 1; }
 	50%  { opacity: 0; }
-	51%  { opacity: 0; }
-	100% { opacity: 0; }
+	90%  { opacity: 0; }
+	100% { opacity: 1; }
 }
