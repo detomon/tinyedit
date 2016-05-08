@@ -24,10 +24,11 @@ function indexOfElement(element) {
 
 function windowScrollOffset() {
 	var docElement = d.documentElement;
+	var body = d.body;
 
 	return {
-		x: d.body.scrollLeft + docElement.scrollLeft,
-		y: d.body.scrollTop + docElement.scrollTop,
+		x: body.scrollLeft + docElement.scrollLeft,
+		y: body.scrollTop + docElement.scrollTop,
 	};
 }
 
@@ -37,12 +38,9 @@ function windowScrollOffset() {
 function positionFromRelativePosition(x, y) {
 	var scrollOffset = windowScrollOffset();
 
-	x -= scrollOffset.x;
-	y -= scrollOffset.y;
-
 	return {
-		x: x,
-		y: y,
+		x: x - scrollOffset.x,
+		y: y - scrollOffset.y,
 	};
 }
 
@@ -52,12 +50,9 @@ function positionFromRelativePosition(x, y) {
 function positionToRelativePosition(x, y) {
 	var scrollOffset = windowScrollOffset();
 
-	x += scrollOffset.x;
-	y += scrollOffset.y;
-
 	return {
-		x: x,
-		y: y,
+		x: x + scrollOffset.x,
+		y: y + scrollOffset.y,
 	};
 }
 
@@ -97,8 +92,10 @@ function textOffsetFromPosition(lineElement, x, y) {
  * Remove element
  */
 function removeElement(element) {
-	if (element && element.parentNode) {
-		element.parentNode.removeChild(element);
+	var parentNode;
+
+	if (element && (parentNode = element.parentNode)) {
+		parentNode.removeChild(element);
 	}
 }
 
@@ -106,26 +103,34 @@ function removeElement(element) {
  * Remove element and merge adjacent text nodes
  */
 function removeElementAndMerge(element) {
-	if (element && element.parentNode) {
-		var parentNode = element.parentNode;
+	var parentNode;
 
+	if (element && (parentNode = element.parentNode)) {
 		removeElement(element);
 		parentNode.normalize();
 	}
 }
 
 function parentNodeFromClickTarget(element) {
-	while (element.parentNode) {
-		var parent = element.parentNode;
+	var parentNode;
 
-		if (parent && parent.classList && parent.classList.contains(className('container'))) {
+	while (parentNode = element.parentNode) {
+		if (hasClass(parentNode, 'container')) {
 			return element;
 		}
 
-		element = parent;
+		element = parentNode;
 	}
 
 	return null;
+}
+
+function hasClass(element, name) {
+	return element && element.classList && element.classList.contains(className(name));
+}
+
+function hasNodeName(element, nodeName) {
+	return element && element.nodeName.toLowerCase() === nodeName;
 }
 
 function keyDown(keyCode) {
@@ -161,9 +166,29 @@ function keyDown(keyCode) {
 	}
 }
 
+function createElement(elementName, classNames, attributes) {
+	var element = d.createElement(elementName);
+
+	if (classNames) {
+		classNames = classNames.map(function (name) {
+			return className(name);
+		});
+
+		element.classList.add.apply(element.classList, classNames);
+	}
+
+	if (attributes) {
+		for (var key in attributes) {
+			element.setAttribute(key, attributes[key]);
+		}
+	}
+
+	return element;
+}
+
 function createLineElement(text) {
-	var line = d.createElement('div');
-	var inner = d.createElement('div');
+	var line = createElement('div');
+	var inner = createElement('div');
 
 	inner.innerHTML = text;
 	line.appendChild(inner);
@@ -172,14 +197,12 @@ function createLineElement(text) {
 }
 
 function extend(obj, obj2) {
-	var i, j;
-	var arg;
 	var args = Array.prototype.slice.call(arguments, 1);
 
-	for (i = 0; i < args.length; i ++) {
+	for (var i = 0; i < args.length; i ++) {
 		var arg = args[i];
 
-		for (j in arg) {
+		for (var j in arg) {
 			if (arg.hasOwnProperty(j)) {
 				if (arg[j] !== null && arg[j] !== undefined) {
 					obj[j] = arg[j];
@@ -191,22 +214,12 @@ function extend(obj, obj2) {
 	return obj;
 }
 
-function stringRepeat(string, count) {
-	var newString = '';
-
-	for (var i = 0; i < count; i ++) {
-		newString += string;
-	}
-
-	return newString;
-}
-
 function TinyEdit(editor, options) {
 	var self = this;
 
 	options = extend({
 		tabWidth: 4,
-		tabStyle: 'hard',
+		tabStyle: 'hard', // hard, soft
 		textarea: null,
 		firstLineNumber: 1,
 		lineBreak: '\n',
@@ -256,7 +269,7 @@ function TinyEdit(editor, options) {
 				if (parent) {
 					parent.removeChild(cursor);
 
-					while (parent.nodeName.toLowerCase() != 'div') {
+					while (!hasNodeName(parent, 'div')) {
 						parent = parent.parentNode;
 					}
 
@@ -267,8 +280,7 @@ function TinyEdit(editor, options) {
 			this.list = [];
 		},
 		create: function () {
-			var cursor = d.createElement('span');
-			cursor.classList.add(className('cursor'), className('blink'));
+			var cursor = createElement('span', ['cursor', 'blink']);
 			this.list.push(cursor);
 
 			return cursor;
@@ -278,12 +290,11 @@ function TinyEdit(editor, options) {
 		},
 		createInputElement: function () {
 			if (!this.inputElement) {
-				var input = d.createElement('textarea');
-
-				input.setAttribute('wrap', 'off');
-				input.setAttribute('autocapitalize', 'off');
-				input.setAttribute('spellcheck', 'false');
-				input.classList.add(className('input'));
+				var input = createElement('textarea', ['input'], {
+					wrap: 'off',
+					autocapitalize: 'off',
+					spellcheck: 'false',
+				});
 
 				this.inputElement = input;
 			}
@@ -325,7 +336,7 @@ function TinyEdit(editor, options) {
 			var n = self.lines.element.childNodes.length;
 
 			while (i < n) {
-				var number = d.createElement('div');
+				var number = createElement('div');
 				number.textContent = options.firstLineNumber + i;
 				element.appendChild(number);
 				i ++;
@@ -357,19 +368,14 @@ function TinyEdit(editor, options) {
 		return data.join(options.lineBreak);
 	};
 
-	var contentElement = d.createElement('div');
-	var gutterElement = d.createElement('div');
-	var contentInner = d.createElement('div');
-	var gutterInner = d.createElement('div');
+	var contentElement = createElement('div', ['content']);
+	var gutterElement = createElement('div', ['gutter']);
+	var contentInner = createElement('div', ['content-inner', 'container']);
+	var gutterInner = createElement('div', ['gutter-inner', 'container']);
 	var data;
 
 	contentElement.appendChild(contentInner);
 	gutterElement.appendChild(gutterInner);
-
-	contentElement.classList.add(className('content'));
-	contentInner.classList.add(className('content-inner'), className('container'));
-	gutterElement.classList.add(className('gutter'));
-	gutterInner.classList.add(className('gutter-inner'), className('container'));
 
 	if (options.textarea) {
 		data = options.textarea.value;
@@ -432,7 +438,7 @@ proto.handleTextClick = function(lineElement, e) {
 	var fragment = offset.textNode;
 
 	// tab
-	if (fragment.parentNode.classList.contains(className('tab'))) {
+	if (hasClass(fragment.parentNode, 'tab')) {
 		var tab = fragment.parentNode;
 		var rect = tab.getBoundingClientRect();
 
@@ -454,7 +460,7 @@ proto.handleTextClick = function(lineElement, e) {
 		return;
 	}
 	// cursor
-	else if (fragment.classList && fragment.classList.contains(className('cursor'))) {
+	else if (hasClass(fragment, 'cursor')) {
 		if (fragment.nextSibling) {
 			fragment = fragment.nextSibling;
 		}
@@ -468,7 +474,7 @@ proto.handleTextClick = function(lineElement, e) {
 	var cursor = self.cursors.create();
 	var textNode = offset.textNode;
 
-	if (textNode.nodeName.toLowerCase() == 'div') {
+	if (hasNodeName(textNode, 'div')) {
 		textNode.appendChild(cursor);
 	}
 	else if (offset.offset == 0) {
@@ -499,12 +505,12 @@ proto.handleMouseDownEvent = function(e) {
 	var parentNode = target.parentNode;
 
 	// lines
-	if (parentNode.classList.contains(className('content-inner'))) {
+	if (hasClass(parentNode, 'content-inner')) {
 		target = target.querySelector('div');
 		self.handleTextClick(target, e);
 	}
 	// gutter
-	else if (parentNode.classList.contains(className('gutter-inner'))) {
+	else if (hasClass(parentNode, 'gutter-inner')) {
 		self.handleGutterClick(target, e);
 	}
 };
