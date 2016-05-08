@@ -11,7 +11,7 @@ function className(name) {
 }
 
 /**
- * Get DOM index of element
+ * Get DOM index of element.
  */
 function indexOfElement(element) {
 	if (!element.parentNode) {
@@ -33,7 +33,7 @@ function windowScrollOffset() {
 }
 
 /**
- * Convert from relative viewport coordinates to absolute coordinates
+ * Convert from relative viewport coordinates to absolute coordinates.
  */
 function positionFromRelativePosition(x, y) {
 	var scrollOffset = windowScrollOffset();
@@ -45,7 +45,7 @@ function positionFromRelativePosition(x, y) {
 }
 
 /**
- * Convert from absolute coordinates to relative viewport coordinates
+ * Convert from absolute coordinates to relative viewport coordinates.
  */
 function positionToRelativePosition(x, y) {
 	var scrollOffset = windowScrollOffset();
@@ -57,7 +57,7 @@ function positionToRelativePosition(x, y) {
 }
 
 /**
- * Get offset and textNode from viewport coordinates
+ * Get offset and textNode from viewport coordinates.
  */
 function textOffsetFromPosition(lineElement, x, y) {
 	var range;
@@ -89,7 +89,7 @@ function textOffsetFromPosition(lineElement, x, y) {
 }
 
 /**
- * Remove element
+ * Remove element from DOM.
  */
 function removeElement(element) {
 	var parentNode;
@@ -100,7 +100,7 @@ function removeElement(element) {
 }
 
 /**
- * Remove element and merge adjacent text nodes
+ * Remove element and merge adjacent text nodes.
  */
 function removeElementAndMerge(element) {
 	var parentNode;
@@ -111,6 +111,9 @@ function removeElementAndMerge(element) {
 	}
 }
 
+/**
+ *
+ */
 function parentNodeFromClickTarget(element) {
 	var parentNode;
 
@@ -125,14 +128,23 @@ function parentNodeFromClickTarget(element) {
 	return null;
 }
 
+/**
+ *
+ */
 function hasClass(element, name) {
 	return element && element.classList && element.classList.contains(className(name));
 }
 
+/**
+ *
+ */
 function hasNodeName(element, nodeName) {
 	return element && element.nodeName.toLowerCase() === nodeName;
 }
 
+/**
+ *
+ */
 function keyDown(keyCode) {
 	switch (keyCode) {
 		case 8: { // delete
@@ -166,6 +178,9 @@ function keyDown(keyCode) {
 	}
 }
 
+/**
+ *
+ */
 function createElement(elementName, classNames, attributes) {
 	var element = d.createElement(elementName);
 
@@ -186,6 +201,9 @@ function createElement(elementName, classNames, attributes) {
 	return element;
 }
 
+/**
+ *
+ */
 function createLineElement(text) {
 	var line = createElement('div');
 	var inner = createElement('div');
@@ -196,6 +214,19 @@ function createLineElement(text) {
 	return line;
 }
 
+/**
+ *
+ */
+function createLineElementFromRawLineContent(text) {
+	// replace tabs with tab element
+	text = text.replace(/(\t)/g, '<span class="' + className('tab') + '">$1</span>');
+
+	return createLineElement(text);
+}
+
+/**
+ *
+ */
 function extend(obj, obj2) {
 	var args = Array.prototype.slice.call(arguments, 1);
 
@@ -214,6 +245,9 @@ function extend(obj, obj2) {
 	return obj;
 }
 
+/**
+ *
+ */
 function TinyEdit(editor, options) {
 	var self = this;
 
@@ -388,7 +422,7 @@ function TinyEdit(editor, options) {
 	data = data.split(/\r?\n/m);
 
 	data.forEach(function (text) {
-		var line = self.createLineElementFromRawLineContent(text);
+		var line = createLineElementFromRawLineContent(text);
 		contentInner.appendChild(line);
 	});
 
@@ -406,23 +440,30 @@ function TinyEdit(editor, options) {
 		});
 	}
 
+	/*editor.addEventListener('transitionend', function (e) {
+						console.log(e);
+
+		if (e.propertyName == 'height') {
+			var target = e.target;
+
+			if (target.parentNode.classList.contains('tinyedit-content-inner')) {
+			}
+		}
+	});*/
 }
 
 var proto = TinyEdit.prototype;
 
-proto.createLineElementFromRawLineContent = function(text) {
-	// remove trailing space
-	text = text.replace(/\s+$/g, '');
-	// replace tabs with tab element
-	text = text.replace(/\t/g, '<span class="' + className('tab') + '">\t</span>');
-
-	return createLineElement(text);
-};
-
+/**
+ *
+ */
 proto.handleGutterClick = function(numberElement, e) {
 
 };
 
+/**
+ *
+ */
 proto.handleTextClick = function(lineElement, e) {
 	this.cursors.removeAll();
 
@@ -491,6 +532,9 @@ proto.handleTextClick = function(lineElement, e) {
 	self.cursors.activateForInput(cursor);
 };
 
+/**
+ *
+ */
 proto.handleMouseDownEvent = function(e) {
 	var self = this;
 	var target = e.target;
@@ -515,6 +559,9 @@ proto.handleMouseDownEvent = function(e) {
 	}
 };
 
+/**
+ *
+ */
 window.TinyEdit = function (element, options) {
 	if (!element || !element.parentNode || !element.ownerDocument) {
 		return null;
