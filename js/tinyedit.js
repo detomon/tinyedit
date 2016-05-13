@@ -578,8 +578,7 @@ window.TinyEdit = function (element, options) {
 	}
 
 	if (!element[elementKey]) {
-		var editor = new TinyEdit(element, options)
-		element[elementKey] = editor;
+		element[elementKey] = new TinyEdit(element, options);
 	}
 
 	return element[elementKey];
