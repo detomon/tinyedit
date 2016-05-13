@@ -262,6 +262,7 @@ function TinyEdit(editor, options) {
 
 	this.options = options;
 	editor.style.tabSize = options.tabWidth;
+	editor.style.MozTabSize = options.tabWidth;
 
 	this.deferred = {
 		funcs: [],
