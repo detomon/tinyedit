@@ -57,6 +57,15 @@ function positionToRelativePosition(x, y) {
 }
 
 /**
+ *
+ */
+function selectionRange() {
+	var selection = w.getSelection();
+
+	return selection.rangeCount ? selection.getRangeAt(0) : null;
+}
+
+/**
  * Get offset and textNode from viewport coordinates.
  */
 function textOffsetFromPosition(lineElement, x, y) {
