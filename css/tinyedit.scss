@@ -47,6 +47,8 @@ $cursor-blink-time: 1s;
 }
 
 .tinyedit-gutter {
+	-webkit-touch-callout: none;
+	user-select: none;
 	@include tinyedit-flex-box-flex(none);
 }
 
